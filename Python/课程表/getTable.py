@@ -95,8 +95,8 @@ class tableFun:
         f = open('Table.txt','w+')
         for th in soup.table.thead.tr.find_all():#获取列表头（周一周二...）
             timeTable[0].append(th.string)
-        f.write(",".join(timeTable[0]))
-        i,j = 0,0
+        f.write("|".join(timeTable[0]))
+        i, j = 0, 0
         for tr in soup.table.tbody.find_all('tr'):#遍历六个大节
             i += 1
             for td in tr.find_all('td'):#遍历每天
@@ -111,24 +111,29 @@ class tableFun:
                     #    d[item[:4]] = item[5:]
                     timeTable[i].append(td.p['title'])#添加到列表
             j = 0
-            print(timeTable[i])
-            f.write('\n'+",".join(timeTable[i]))
+            f.write('\n'+"|".join(timeTable[i]))
         f.close()
     def readTable(self):
         timeTable = [[], [], [], [], [], [], []]  # 建立一个二维列表
+        i = 0
         with open('Table.txt','r+') as f:
             for line in f:
-                for value in line.split(','):
+                for value in line.split('|'):
+                    value = value.replace("\n","")
                     if value == '-':
-                        timeTable.append(None)
-                    elif re.findall("第\S大节",value)!=[]:
-                        timeTable.append(value.replace('[enter]', '\n'))
+                        timeTable[i].append(None)
+                    elif re.findall("第\S大节|周/节次|星期\S$",value)!=[]:
+                        timeTable[i].append(value.replace('[enter]', '\n'))
                     else:
                         d = {}#建立一个空字典用于存储有课的数据
-                        for item in td.p['title'].split('[enter]'):#保存每项属性
+                        for item in value.split('[enter]'):#保存每项属性
                             d[item[:4]] = item[5:]
-
+                        timeTable[i].append(d)
+                i += 1
+        f.close()
+        return timeTable
 
 t=tableFun('2020-11-24')
 print(t.login())
 t.getData('2020-11-24')
+print(t.readTable())
