@@ -52,13 +52,20 @@ r = requests.post(url='http://172.16.247.230:800/jsxsd/xk/LoginToXk', data=dict,
 
 
 class tableFun:
-    def __init__(self, day):
-        self.day = day
+    def __init__(self):
         self.loginHeader = {}
+    def getUser(self):
+        f = open('User.txt', 'r+')
+        account = f.readline().replace("\n", "")
+        password = f.readline().replace("\n", "")
+        encoded = base64.b64encode(account.encode()).decode() + "%%%" + base64.b64encode(password.encode()).decode()
+        return account, encoded
+
 
     def login(self):#登录获取cookie
         #登录的账号密码
-        dict = {'userAccount': '190206134', 'userPassword': '', 'encoded': 'MTkwMjA2MTM0%%%d2FuZ2JvMTIz'}
+        loginInfo = self.getUser()
+        dict = {'userAccount': loginInfo[0], 'userPassword': '', 'encoded': loginInfo[1]}
         #得到每次登录所需要的cookie
         cookieUrl = 'http://172.16.247.230:800/jsxsd/xk/172.16.52.2:800/logout?service=http%3A%2F%2F172.16.247.230%3A800%2Fjsxsd'
         loginCookieHeader = requests.get(cookieUrl)
@@ -86,13 +93,19 @@ class tableFun:
         else:
             return False
 
-
-    def getData(self, date):#获取课程表
+    def loginState(self, soup):
+        if(soup.head == None):
+            return True
+        else:
+            return False
+    def getData(self, date,file='Table.txt'):#获取课程表
         dict2 = {'rq': date}
         r2 = requests.post(url='http://172.16.247.230:800/jsxsd/framework/main_index_loadkb.jsp', data=dict2, headers=self.loginHeader)#获取课程表包
         soup = BeautifulSoup(r2.text.replace('<br/>','[enter]').replace('\t','').replace('\r\n','').replace("'",'"'), 'lxml')#数据处理转换为beautifulsoup格式进行处理
+        if(self.loginState(soup) == False):
+            return False
         timeTable = [[], [], [], [], [], [], []]#建立一个二维列表
-        f = open('Table.txt','w+')
+        f = open(file, 'w+')
         for th in soup.table.thead.tr.find_all():#获取列表头（周一周二...）
             timeTable[0].append(th.string)
         f.write("|".join(timeTable[0]))
@@ -113,10 +126,11 @@ class tableFun:
             j = 0
             f.write('\n'+"|".join(timeTable[i]))
         f.close()
-    def readTable(self):
+        return True
+    def readTable(self,file='Table.txt'):
         timeTable = [[], [], [], [], [], [], []]  # 建立一个二维列表
         i = 0
-        with open('Table.txt','r+') as f:
+        with open(file, 'r+') as f:
             for line in f:
                 for value in line.split('|'):
                     value = value.replace("\n","")
@@ -133,7 +147,9 @@ class tableFun:
         f.close()
         return timeTable
 
-t=tableFun('2020-11-24')
-print(t.login())
-t.getData('2020-11-24')
-print(t.readTable())
+if __name__ == "__main__":
+    t = tableFun()
+    print(t.login())
+    t.getUser()
+    t.getData('2020-12-1')
+    print(t.readTable())
