@@ -131,6 +131,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         date = self.dateEdit.dateTime().date().toPyDate()
         t.getData(date)
         Table = t.readTable()
+        print(Table)
         print(date)
         i = 0
         for line in Table:
@@ -139,6 +140,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
         tm = time.strptime(str(date), '%Y-%m-%d')
         deviation = tm.tm_wday
+        print(deviation)
         if(deviation == 0):
             date1 = str((datetime.date.fromisoformat(str(date)) + datetime.timedelta(-1)).strftime("%Y-%m-%d"))
             t.getData(date1, 'Table1.txt')
@@ -148,20 +150,26 @@ class Ui_MainWindow(QtWidgets.QWidget):
             t.getData(date1, 'Table1.txt')
             table1 = t.readTable('Table1.txt')
         rq = list(map(lambda x: (x + deviation) % 8, range(0, 3)))
-        print(rq)
+
+
         i = 0
         n = 0
-        for line in Table:
 
+        for line in Table:
+            print(line)
             j = 1
             for item in rq:
                 if(item == 0):
-                    text = table1[n][1+abs(deviation-6)]
+                    if(table1[n]):
+                        text = table1[n][1+abs(deviation-6)]
+                    else:
+                        text = ''
                 else:
                     text = line[item]
                 if(text != None):
+
                     if(type(text) == type({1:'1'})):
-                        s=text['课程名称']+'\n'+text['上课时间']
+                        s=text['课程名称']+'\n'+text['上课时间']+'\n'+text['上课地点']
                         self.tableWidget.item(i, j).setText(s)
                     else:
                         self.tableWidget.item(i, j).setText(text)
@@ -175,5 +183,4 @@ if __name__ == '__main__':
     ui = Ui_MainWindow()
     ui.setupUi(mainwindow)
     mainwindow.show()
-
     sys.exit(app.exec_())

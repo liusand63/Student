@@ -151,5 +151,5 @@ if __name__ == "__main__":
     t = tableFun()
     print(t.login())
     t.getUser()
-    t.getData('2020-12-1')
+    t.getData('2021-09-06')
     print(t.readTable())
